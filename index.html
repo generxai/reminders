@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Reminders</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --desk: #eee9dd;
+      --ink: #28261f;
+      --muted: #777064;
+      --yellow: #fff19a;
+      --pink: #ffc8d2;
+      --blue: #bfe7f2;
+      --green: #cce8bc;
+      --shadow: 0 12px 22px rgba(64, 51, 27, .14), 0 2px 4px rgba(64, 51, 27, .12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background-color: var(--desk);
+      background-image:
+        linear-gradient(rgba(81, 70, 47, .045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(81, 70, 47, .045) 1px, transparent 1px);
+      background-size: 24px 24px;
+      font-family: "Trebuchet MS", "Avenir Next", Avenir, sans-serif;
+    }
+
+    main {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 48px 0 64px;
+    }
+
+    header {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 28px;
+      border-bottom: 2px solid rgba(40, 38, 31, .17);
+      padding: 0 4px 16px;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(42px, 7vw, 76px);
+      font-weight: 400;
+      letter-spacing: -.045em;
+      line-height: .9;
+    }
+
+    .date {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      text-align: right;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 22px;
+      align-items: start;
+    }
+
+    .note {
+      position: relative;
+      min-height: 220px;
+      padding: 30px 28px 26px;
+      box-shadow: var(--shadow);
+      transform: rotate(var(--tilt));
+      transition: transform 150ms ease, box-shadow 150ms ease, opacity 150ms ease;
+    }
+
+    .note::before {
+      content: "";
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      width: 54px;
+      height: 16px;
+      transform: translateX(-50%) rotate(-2deg);
+      background: rgba(255, 255, 255, .48);
+      border: 1px solid rgba(87, 72, 43, .08);
+    }
+
+    .note:hover { transform: rotate(0deg) translateY(-3px); box-shadow: 0 17px 28px rgba(64, 51, 27, .18); }
+    .note.today { grid-column: span 5; background: var(--yellow); --tilt: -1deg; }
+    .note.followups { grid-column: span 4; background: var(--pink); --tilt: 1.1deg; }
+    .note.accounts { grid-column: span 3; background: var(--blue); --tilt: -.7deg; }
+    .note.ops { grid-column: span 12; min-height: 0; background: var(--green); --tilt: .25deg; }
+
+    h2 {
+      margin: 3px 0 18px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 27px;
+      font-weight: 400;
+      letter-spacing: -.02em;
+    }
+
+    ul { list-style: none; margin: 0; padding: 0; }
+    li + li { border-top: 1px dashed rgba(40, 38, 31, .18); }
+
+    label {
+      display: grid;
+      grid-template-columns: 24px 1fr;
+      gap: 10px;
+      align-items: start;
+      padding: 11px 0;
+      cursor: pointer;
+      line-height: 1.35;
+    }
+
+    input[type="checkbox"] {
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      margin: 0;
+      border: 2px solid rgba(40, 38, 31, .65);
+      border-radius: 4px;
+      background: rgba(255,255,255,.25);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+    }
+
+    input[type="checkbox"]::after {
+      content: "✓";
+      font-size: 18px;
+      font-weight: 900;
+      line-height: 1;
+      transform: scale(0) rotate(-12deg);
+      transition: transform 100ms ease;
+    }
+
+    input[type="checkbox"]:checked::after { transform: scale(1) rotate(-6deg); }
+    input[type="checkbox"]:focus-visible { outline: 3px solid #3c69e7; outline-offset: 3px; }
+    label:has(input:checked) .task { text-decoration: line-through; opacity: .52; }
+
+    .time {
+      display: inline-block;
+      margin-right: 5px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .detail { display: block; margin-top: 3px; color: rgba(40,38,31,.68); font-size: 13px; }
+
+    .ops ul { display: grid; grid-template-columns: repeat(3, 1fr); column-gap: 28px; }
+    .ops li + li { border-top: 0; }
+
+    footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 28px;
+      padding: 0 5px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    button {
+      min-height: 44px;
+      padding: 0 16px;
+      border: 1px solid rgba(40,38,31,.25);
+      border-radius: 999px;
+      color: var(--ink);
+      background: rgba(255,255,255,.34);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:hover { background: rgba(255,255,255,.65); }
+    button:focus-visible { outline: 3px solid #3c69e7; outline-offset: 3px; }
+
+    @media (max-width: 820px) {
+      main { padding-top: 30px; }
+      header { align-items: start; }
+      .note.today, .note.followups { grid-column: span 6; }
+      .note.accounts { grid-column: span 12; }
+    }
+
+    @media (max-width: 620px) {
+      main { width: min(100% - 22px, 1120px); }
+      header { display: block; }
+      .date { margin-top: 12px; text-align: left; }
+      .note.today, .note.followups, .note.accounts, .note.ops { grid-column: span 12; }
+      .note { transform: none; min-height: 0; }
+      .ops ul { grid-template-columns: 1fr; }
+      .ops li + li { border-top: 1px dashed rgba(40, 38, 31, .18); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .note, input[type="checkbox"]::after { transition: none; }
+    }
+
+    @media print {
+      body { background: white; }
+      main { width: 100%; padding: 16px; }
+      .note { box-shadow: none; border: 1px solid #bbb; transform: none; }
+      button { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Reminders</h1>
+      <p class="date">Tuesday · September 15, 2026</p>
+    </header>
+
+    <section class="board" aria-label="Today's reminder board">
+      <article class="note today">
+        <h2>Timed today</h2>
+        <ul>
+          <li><label><input type="checkbox" data-id="stuart"><span class="task"><span class="time">9:00 AM</span> Check in with Stuart Tarnowski<span class="detail">ARSA after the Sept. 8 message, plus Paul Dellacroce / UKG.</span></span></label></li>
+          <li><label><input type="checkbox" data-id="memorial"><span class="task"><span class="time">9:00 AM</span> Memorial Healthcare review<span class="detail">Check for a credible new reason to reengage Dianne Rosario after the no-budget outcome.</span></span></label></li>
+          <li><label><input type="checkbox" data-id="ruchi"><span class="task"><span class="time">10:00 AM</span> Reconnect with Ruchi + Rachel<span class="detail">Follow up after the vendor-eligibility check.</span></span></label></li>
+        </ul>
+      </article>
+
+      <article class="note followups">
+        <h2>Follow-ups</h2>
+        <ul>
+          <li><label><input type="checkbox" data-id="imagine"><span class="task">Imagine Pediatrics<span class="detail">Review the one-measure validation package awaiting a reply.</span></span></label></li>
+          <li><label><input type="checkbox" data-id="paul"><span class="task">Paul Dellacroce<span class="detail">Evaluate possible GenerXAI introductions.</span></span></label></li>
+          <li><label><input type="checkbox" data-id="touches"><span class="task">Contact review<span class="detail">Prabhjot, Rachael, Paul, Dianne, Ruchi, and Stuart.</span></span></label></li>
+        </ul>
+      </article>
+
+      <article class="note accounts">
+        <h2>Accounts</h2>
+        <ul>
+          <li><label><input type="checkbox" data-id="altitude"><span class="task">Altitude</span></label></li>
+          <li><label><input type="checkbox" data-id="ukg"><span class="task">UKG</span></label></li>
+          <li><label><input type="checkbox" data-id="clarity"><span class="task">Clarity Pediatrics</span></label></li>
+          <li><label><input type="checkbox" data-id="imagine-account"><span class="task">Imagine Pediatrics</span></label></li>
+          <li><label><input type="checkbox" data-id="connectedcare"><span class="task">ConnectedCare Advisory</span></label></li>
+        </ul>
+      </article>
+
+      <article class="note ops">
+        <h2>Running automatically</h2>
+        <ul>
+          <li><label><input type="checkbox" data-id="brief" disabled><span class="task"><span class="time">5:00 AM</span> Existing-account brief</span></label></li>
+          <li><label><input type="checkbox" data-id="eod" disabled><span class="task"><span class="time">4:30 PM</span> EOD reconciliation</span></label></li>
+          <li><label><input type="checkbox" data-id="full" disabled><span class="task"><span class="time">6:00 PM</span> Full-context reconciliation</span></label></li>
+        </ul>
+      </article>
+    </section>
+
+    <footer>
+      <span>Checks stay saved on this device.</span>
+      <button type="button" id="reset">Reset checks</button>
+    </footer>
+  </main>
+
+  <script>
+    const storageKey = 'generxai-reminders-2026-09-15';
+    const boxes = [...document.querySelectorAll('input[type="checkbox"]:not(:disabled)')];
+    const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
+    boxes.forEach(box => {
+      box.checked = Boolean(saved[box.dataset.id]);
+      box.addEventListener('change', () => {
+        const state = Object.fromEntries(boxes.map(item => [item.dataset.id, item.checked]));
+        localStorage.setItem(storageKey, JSON.stringify(state));
+      });
+    });
+    document.getElementById('reset').addEventListener('click', () => {
+      boxes.forEach(box => { box.checked = false; });
+      localStorage.removeItem(storageKey);
+    });
+  </script>
+</body>
+</html>
